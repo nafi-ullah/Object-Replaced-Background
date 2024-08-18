@@ -3,6 +3,7 @@ import os
 from PIL import Image
 from rembg import remove
 from main import get_unique_filename, adjust_foreground_to_match_background, add_shadow_to_object
+from aifunctions import analyze_image_and_prompt, generate_dalle_image
 
 app = Flask(__name__)
 
@@ -61,6 +62,24 @@ def upload_image():
     background.save(result_path)
 
     return jsonify({'result_path': result_path}), 200
+
+@app.route('/generate-image', methods=['POST'])
+def generate_image():
+    # data = request.json
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file provided'}), 400
+    # image = data.get('image')
+    # prompt = data.get('prompt')
+    prompt = "Set the following car mentioned in image infront of hyundai showroom. Dont change the car's design." 
+    image = request.files['image']
+    # if not image or not prompt:
+    #     return jsonify({'error': 'Image and prompt are required.'}), 400
+    print(image)
+    gpt_analysis = analyze_image_and_prompt("https://www.shutterstock.com/image-photo/biysk-russia-circa-september-2017-260nw-735050692.jpg", prompt)
+    print(gpt_analysis)
+    generated_image = generate_dalle_image(gpt_analysis)
+    
+    return jsonify({'generated_image': generated_image})
 
 if __name__ == '__main__':
     app.run(debug=True)
